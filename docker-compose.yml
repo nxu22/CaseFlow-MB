@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  # PostgreSQL: same version we'll use on AWS RDS, so dev == prod schema-wise.
+  db:
+    image: postgres:16-alpine
+    container_name: caseflow_db
+    environment:
+      POSTGRES_USER: caseflow
+      POSTGRES_PASSWORD: caseflow_dev
+      POSTGRES_DB: caseflow_mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U caseflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI backend. Waits for db healthcheck before starting.
+  backend:
+    build: ./backend
+    container_name: caseflow_backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Inside the Docker network, the db service is reachable as "db".
+      DATABASE_URL: postgresql://caseflow:caseflow_dev@db:5432/caseflow_mb
+      ENVIRONMENT: development
+    env_file:
+      - .env
+    volumes:
+      # Mount source for hot reload during development.
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Next.js frontend with hot reload.
+  frontend:
+    build: ./frontend
+    container_name: caseflow_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      # Prevent host node_modules (Windows binaries) from overwriting
+      # container node_modules (Linux binaries).
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environment
+venv/
+.venv/
+
+# Environment variables — 绝对不能进 git
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js (前端 Day 3 会用到，先放着)
+node_modules/
+.next/
+out/
+build/
+dist/
