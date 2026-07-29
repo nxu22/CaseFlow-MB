@@ -180,7 +180,10 @@ def decide_intake(
         if intake_session.redraft_count >= MAX_REDRAFT_COUNT:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"已达最大重新生成次数（{MAX_REDRAFT_COUNT} 次），请手动编辑或拒绝",
+                detail=(
+                    f"Redraft limit of {MAX_REDRAFT_COUNT} reached for this intake. "
+                    "Edit the draft manually or reject it."
+                ),
             )
         intake_session.redraft_count += 1
         db.commit()
